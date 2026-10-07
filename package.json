@@ -1,0 +1,23 @@
+{
+  "name": "tushiz-klavye-10-parmak",
+  "version": "1.0.0",
+  "description": "10 Parmak Hız Testi (ASCII Türkçe) - Vercel & Database Entegrasyonu",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "deploy": "npx vercel"
+  },
+  "keywords": [
+    "typing-test",
+    "10-parmak",
+    "ascii-turkce",
+    "vercel",
+    "leaderboard"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1"
+  }
+}
