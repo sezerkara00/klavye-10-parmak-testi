@@ -2,10 +2,10 @@
   "name": "tushiz-klavye-10-parmak",
   "version": "1.0.0",
   "description": "10 Parmak Hız Testi (ASCII Türkçe) - Vercel & Database Entegrasyonu",
+  "main": "server.js",
   "scripts": {
-    "start": "node local-server.js",
-    "dev": "node local-server.js",
-    "deploy": "npx vercel"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "keywords": [
     "typing-test",
