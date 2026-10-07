@@ -1,6 +1,6 @@
 /**
  * TusHiz - Sunucu & Vercel Entrypoint
- * Hem Vercel Node.js Serverless ortamında hem de yerel sunucu olarak çalışır.
+ * NFT (Node File Trace) statik dosya önbelleği ile Vercel'de eksiksiz dosya sunumu.
  */
 
 const http = require('http');
@@ -10,14 +10,32 @@ const url = require('url');
 
 const scoresHandler = require('./api/scores');
 
-const MIME_TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.js': 'application/javascript; charset=utf-8',
-  '.json': 'application/json',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.ico': 'image/x-icon'
+// Vercel Lambda paketleyicisinin (NFT) tüm dosyaları dahil etmesi için statik önbellek:
+const STATIC_FILES = {
+  '/': {
+    content: fs.readFileSync(path.join(__dirname, 'index.html'), 'utf-8'),
+    type: 'text/html; charset=utf-8'
+  },
+  '/index.html': {
+    content: fs.readFileSync(path.join(__dirname, 'index.html'), 'utf-8'),
+    type: 'text/html; charset=utf-8'
+  },
+  '/style.css': {
+    content: fs.readFileSync(path.join(__dirname, 'style.css'), 'utf-8'),
+    type: 'text/css; charset=utf-8'
+  },
+  '/words.js': {
+    content: fs.readFileSync(path.join(__dirname, 'words.js'), 'utf-8'),
+    type: 'application/javascript; charset=utf-8'
+  },
+  '/sound.js': {
+    content: fs.readFileSync(path.join(__dirname, 'sound.js'), 'utf-8'),
+    type: 'application/javascript; charset=utf-8'
+  },
+  '/script.js': {
+    content: fs.readFileSync(path.join(__dirname, 'script.js'), 'utf-8'),
+    type: 'application/javascript; charset=utf-8'
+  }
 };
 
 async function handler(req, res) {
@@ -69,35 +87,22 @@ async function handler(req, res) {
     return await scoresHandler(req, res);
   }
 
-  // 2. Statik Dosyalar (index.html, style.css, script.js, words.js, sound.js vb.)
-  const safePath = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
-  const filePath = path.join(__dirname, safePath);
-  const ext = path.extname(filePath).toLowerCase();
-
-  try {
-    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-      const content = fs.readFileSync(filePath);
-      const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-      res.writeHead(200, { 'Content-Type': contentType });
-      return res.end(content);
-    }
-  } catch (err) {
-    console.error('Statik dosya okuma hatası:', err);
+  // 2. Statik Dosyalar (Hafızadan anında sunum)
+  if (STATIC_FILES[pathname]) {
+    const file = STATIC_FILES[pathname];
+    res.writeHead(200, {
+      'Content-Type': file.type,
+      'Cache-Control': 'public, max-age=3600'
+    });
+    return res.end(file.content);
   }
 
-  // Dosya bulunamadıysa index.html'e yönlendir (SPA fallback)
-  const indexFile = path.join(__dirname, 'index.html');
-  if (fs.existsSync(indexFile)) {
-    const content = fs.readFileSync(indexFile);
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    return res.end(content);
-  }
-
-  res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-  res.end('404 Dosya Bulunamadı');
+  // 3. Fallback: index.html
+  const fallback = STATIC_FILES['/'];
+  res.writeHead(200, { 'Content-Type': fallback.type });
+  return res.end(fallback.content);
 }
 
-// Vercel Serverless Function için export
 module.exports = handler;
 
 // Yerel sunucu başlatma
